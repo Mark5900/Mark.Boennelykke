@@ -176,5 +176,3 @@ function Write-MBLogLine
 	
 	Write-Host "$(Get-Date -Format HH:mm:ss) : $($ScriptPart) : $Text"
 }
-
-#TODO: How to deploy a module?
