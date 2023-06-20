@@ -77,8 +77,8 @@
 	
 	# Functions to export from this module
 	FunctionsToExport = @(
-		'Start-MBScriptLoggin',
-		'Stop-MBScriptLoggin',
+		'Start-MBScriptLogging',
+		'Stop-MBScriptLogging',
 		'Write-MBLogLine'
 	) #For performance, list functions explicitly
 	
