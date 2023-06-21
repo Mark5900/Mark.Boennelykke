@@ -1,6 +1,6 @@
 ﻿function Start-MBScriptLogging {
-    [CmdletBinding('Start-MBScriptLoggin')]
-    [Alias()]
+    [CmdletBinding()]
+    [Alias('Start-MBScriptLoggin')]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -19,61 +19,65 @@
     )
     $FunctionName = 'Start-MBScriptLogging'
 	
-    function Get-LogFilePath ($LogPath, $LogName) {
-        $Run = $true
-        $i = 1
-		
-        $Path = "$LogPath\$LogName.log"
-		
-        While ($Run -eq $true) {
-            if ((Test-Path -Path $Path) -eq $true) {
-                # TODO #6 Ændre på dette for den kan ikke håndtere navne
-                $Path = "$LogPath\$($LogName)_$($i).log"
-                $i++
-            } else {
-                $Run = $false
-            }
-        }
-		
-        return $Path
-    }
-	
-    # Start transcript.
     try {
-        $LogFolderPath = "$Path\\Logs_$LogName"
-        New-Item -Path $LogFolderPath -ItemType Directory -Force | Out-Null
+        function Get-LogFilePath ($LogPath, $LogName) {
+            $Run = $true
+            $i = 1
 		
-        if ($UseTimeInFileName -eq $true -and $UseDateInFileName -eq $true) {
-            $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName "$LogName-$(Get-Date -Format 'yyyy-MM-dd_HH-mm-s')"
-        } elseif ($UseDateInFileName -eq $true) {
-            $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName "$LogName-$(Get-Date -Format 'yyyy-MM-dd')"
-        } else {
-            $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName $LogName
+            $Path = "$LogPath\$LogName.log"
+		
+            While ($Run -eq $true) {
+                if ((Test-Path -Path $Path) -eq $true) {
+                    # TODO #6 Ændre på dette for den kan ikke håndtere navne
+                    $Path = "$LogPath\$($LogName)_$($i).log"
+                    $i++
+                } else {
+                    $Run = $false
+                }
+            }
+		
+            return $Path
         }
-        Start-Transcript -Path $LogFilePath
-		
-        Write-Output (''); # Insert line break just after starting the transcript (for readability).
-		
-        # Used to stop all transcripts that are started 
-        $Script:TranscriptSesions++
-        # Used to store path to current logfile
-        $global:ItcLogfile = $LogFilePath
-    } catch { }
 	
-    if ($UseStopwatch -eq $true) {
-        # Start a new stopwatch for measuring elapsed time for the script.
-        $Script:ItcStopwatch = [Diagnostics.Stopwatch]::StartNew()
-    }
-	
-    if ($DeleteDaysOldLogs -or $DeleteAllLogs -eq $true) {
-        $LogFiles = Get-ChildItem -Path $LogFolderPath
+        # Start transcript.
+        try {
+            $LogFolderPath = "$Path\\Logs_$LogName"
+            New-Item -Path $LogFolderPath -ItemType Directory -Force | Out-Null
 		
-        foreach ($LogFile in $LogFiles) {
-            If ($LogFile.CreationTime.Date -le ((Get-Date).AddDays(-$DeleteDaysOldLogs).ToString('yyyy-MM-dd'))) {
-                Remove-Item $LogFile -Force -ErrorAction SilentlyContinue
-                Write-MBLogLine -ScriptPart $FunctionName -Text "Deleting $LogFile"
+            if ($UseTimeInFileName -eq $true -and $UseDateInFileName -eq $true) {
+                $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName "$LogName-$(Get-Date -Format 'yyyy-MM-dd_HH-mm-s')"
+            } elseif ($UseDateInFileName -eq $true) {
+                $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName "$LogName-$(Get-Date -Format 'yyyy-MM-dd')"
+            } else {
+                $LogFilePath = Get-LogFilePath -LogPath $LogFolderPath -LogName $LogName
+            }
+            Start-Transcript -Path $LogFilePath
+		
+            Write-Output (''); # Insert line break just after starting the transcript (for readability).
+		
+            # Used to stop all transcripts that are started 
+            $Script:TranscriptSesions++
+            # Used to store path to current logfile
+            $global:ItcLogfile = $LogFilePath
+        } catch { }
+	
+        if ($UseStopwatch -eq $true) {
+            # Start a new stopwatch for measuring elapsed time for the script.
+            $Script:ItcStopwatch = [Diagnostics.Stopwatch]::StartNew()
+        }
+	
+        if ($DeleteDaysOldLogs -or $DeleteAllLogs -eq $true) {
+            $LogFiles = Get-ChildItem -Path $LogFolderPath
+		
+            foreach ($LogFile in $LogFiles) {
+                If ($LogFile.CreationTime.Date -le ((Get-Date).AddDays(-$DeleteDaysOldLogs).ToString('yyyy-MM-dd'))) {
+                    Remove-Item $LogFile -Force -ErrorAction SilentlyContinue
+                    Write-MBLogLine -ScriptPart $FunctionName -Text "Deleting $LogFile"
+                }
             }
         }
+    } catch {
+        $Error[0]
     }
 }
 
