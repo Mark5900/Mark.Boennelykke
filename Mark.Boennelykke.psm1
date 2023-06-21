@@ -1,4 +1,6 @@
 ﻿function Start-MBScriptLogging {
+    [CmdletBinding('Start-MBScriptLoggin')]
+    [Alias()]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -91,6 +93,7 @@
 #>
 function Stop-MBScriptLogging {
     [CmdletBinding()]
+    [Alias('Stop-MBScriptLoggin')]
     param ()
     $FunctionName = 'Stop-MBScriptLogging'
 	
